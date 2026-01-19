@@ -28,12 +28,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            name: Linux x86_64
-          - os: macos-latest
-            name: macOS arm64
-          - os: macos-13
-            name: macOS x86_64
+          # Linux
+          - os: ubuntu-24.04
+            name: Ubuntu 24.04
+          - os: ubuntu-22.04
+            name: Ubuntu 22.04
+          - os: ubuntu-20.04
+            name: Ubuntu 20.04
+          # macOS Apple Silicon
+          - os: macos-15
+            name: macOS 15 (arm64)
+          - os: macos-14
+            name: macOS 14 (arm64)
+          # macOS Intel
+          - os: macos-15-intel
+            name: macOS 15 (x86_64)
 
     runs-on: ${{ matrix.os }}
     name: Install (${{ matrix.name }})
