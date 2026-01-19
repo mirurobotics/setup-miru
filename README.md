@@ -14,7 +14,7 @@ Install the latest version of the Miru CLI:
 
 ```yaml
 steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v6
 
   - name: Setup Miru CLI
     uses: mirurobotics/setup-miru@v0
@@ -27,7 +27,7 @@ steps:
 
 ```yaml
 steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v6
 
   - name: Setup Miru CLI
     uses: mirurobotics/setup-miru@v0
@@ -39,7 +39,7 @@ steps:
 
 ```yaml
 steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v6
 
   - name: Setup Miru CLI
     id: miru
@@ -96,7 +96,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Miru CLI
         uses: mirurobotics/setup-miru@v0
@@ -120,7 +120,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Miru CLI
         uses: mirurobotics/setup-miru@v0
