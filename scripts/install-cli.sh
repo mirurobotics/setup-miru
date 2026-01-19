@@ -130,6 +130,8 @@ check_existing_install() {
         installed_version=$("$binary_path" --version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1) || true
         if [ "$installed_version" = "$VERSION" ]; then
             log "$BINARY_NAME $VERSION is already installed"
+            # Output version for GitHub Actions
+            [ -n "${GITHUB_OUTPUT:-}" ] && echo "version=$VERSION" >> "$GITHUB_OUTPUT" || true
             exit 0
         elif [ -n "$installed_version" ]; then
             log "Upgrading $BINARY_NAME from $installed_version to $VERSION"
@@ -163,13 +165,16 @@ verify_checksum() {
 
 main() {
     # Parse arguments
-    VERSION=""
+    VERSION="${INPUT_VERSION:-}"
     for arg in "$@"; do
         case "$arg" in
             --version=*) VERSION="${arg#*=}" ;;
             --quiet|-q)  QUIET=true ;;
         esac
     done
+
+    # Treat "latest" as unset (will fetch from API)
+    [ "$VERSION" = "latest" ] && VERSION=""
 
     check_dependencies
     detect_platform
@@ -215,6 +220,9 @@ main() {
     # Done
     log "$BINARY_NAME $VERSION successfully installed to $INSTALL_DIR/$BINARY_NAME"
     [ "$QUIET" = true ] || echo "$PATH" | grep -q "$INSTALL_DIR" || warn "$INSTALL_DIR is not in your PATH"
+
+    # Output version for GitHub Actions
+    [ -n "${GITHUB_OUTPUT:-}" ] && echo "version=$VERSION" >> "$GITHUB_OUTPUT" || true
 }
 
 main "$@"

@@ -52,7 +52,15 @@ jobs:
       - name: Verify installation
         run: |
           miru version
-          echo "Installed version: ${{ steps.setup.outputs.cli-version }}"
+          echo "Installed version: ${{ steps.setup.outputs.version }}"
+
+      - name: Verify version output
+        run: |
+          if [ -z "${{ steps.setup.outputs.version }}" ]; then
+            echo "ERROR: version output is empty!"
+            exit 1
+          fi
+          echo "version output is set correctly: ${{ steps.setup.outputs.version }}"
 
   version-pin-test:
     name: Version Pin Test
@@ -65,13 +73,26 @@ jobs:
         id: setup
         uses: ./
         with:
-          cli-version: 'v0.8.0'
+          version: 'v0.7.0'
 
       - name: Verify pinned version
         run: |
           version=$(miru version)
           echo "Installed: $version"
-          echo "$version" | grep -q "0.8.0"
+          echo "$version" | grep -q "0.7.0"
+
+      - name: Verify version output matches pinned version
+        run: |
+          output="${{ steps.setup.outputs.version }}"
+          if [ -z "$output" ]; then
+            echo "ERROR: version output is empty!"
+            exit 1
+          fi
+          if [ "$output" != "v0.7.0" ]; then
+            echo "ERROR: version output '$output' does not match expected 'v0.7.0'"
+            exit 1
+          fi
+          echo "version output correctly set to: $output"
 
   shellcheck:
     name: Shellcheck
