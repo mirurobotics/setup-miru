@@ -43,8 +43,6 @@ jobs:
           # macOS Intel
           - os: macos-15-intel
             name: macOS 15 (x86_64)
-          - os: macos-14-large
-            name: macOS 14 (x86_64)
 
     runs-on: ${{ matrix.os }}
     name: Install (${{ matrix.name }})
