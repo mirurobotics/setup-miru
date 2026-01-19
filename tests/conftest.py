@@ -1,4 +1,4 @@
-"""Pytest fixtures for testing install.sh."""
+"""Pytest fixtures for testing install-cli.sh."""
 
 import hashlib
 import io
@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-SCRIPT_PATH = Path(__file__).parent.parent / "scripts" / "install.sh"
+SCRIPT_PATH = Path(__file__).parent.parent / "scripts" / "install-cli.sh"
 
 # =============================================================================
 # Test Helpers
@@ -201,7 +201,7 @@ def run_install(
     env: dict | None = None,
     timeout: int = 60,
 ) -> subprocess.CompletedProcess:
-    """Run install.sh with mocked curl.
+    """Run install-cli.sh with mocked curl.
 
     Args:
         *args: Command line arguments (e.g., "--version=v1.0.0")

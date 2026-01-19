@@ -1,4 +1,4 @@
-"""Tests for install.sh."""
+"""Tests for install-cli.sh."""
 
 import os
 import subprocess

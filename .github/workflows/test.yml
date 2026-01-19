@@ -84,15 +84,3 @@ jobs:
         with:
           scandir: './scripts'
           severity: warning
-
-  yaml-lint:
-    name: YAML Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Validate YAML syntax
-        run: |
-          python3 -c "import yaml; yaml.safe_load(open('action.yml'))"
-          echo "✓ action.yml is valid YAML"

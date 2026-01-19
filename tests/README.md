@@ -1,4 +1,4 @@
-# install.sh Tests
+# install-cli.sh Tests
 
 Pytest-based tests for the Miru CLI install script.
 
@@ -42,7 +42,7 @@ pytest -k "checksum"
 
 ## How It Works
 
-The tests use a **mock `curl`** approach rather than HTTP mocking libraries. This is necessary because `install.sh` uses system `curl` directly.
+The tests use a **mock `curl`** approach rather than HTTP mocking libraries. This is necessary because `install-cli.sh` uses system `curl` directly.
 
 The `MockCurl` class in `conftest.py`:
 1. Creates a fake `curl` script in a temporary directory
