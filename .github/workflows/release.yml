@@ -21,6 +21,13 @@ jobs:
       - name: Update major and minor version tags
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
+          
+          # Skip tag updates for prereleases (contains hyphen after version)
+          if [[ "$VERSION" == *-* ]]; then
+            echo "Skipping tag updates for prerelease: $VERSION"
+            exit 0
+          fi
+          
           MAJOR=${VERSION%%.*}
           MINOR=${VERSION%.*}
           
@@ -36,6 +43,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
+          
+          PRERELEASE_FLAG=""
+          if [[ "$VERSION" == *-* ]]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+          
           gh release create "$VERSION" \
             --title "$VERSION" \
-            --generate-notes
+            --generate-notes \
+            $PRERELEASE_FLAG
