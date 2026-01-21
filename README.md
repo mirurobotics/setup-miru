@@ -17,7 +17,7 @@ steps:
   - uses: actions/checkout@v6
 
   - name: Setup Miru CLI
-    uses: mirurobotics/setup-miru@v0
+    uses: mirurobotics/setup-miru@v0.1
 
   - name: Verify installation
     run: miru version
@@ -30,7 +30,7 @@ steps:
   - uses: actions/checkout@v6
 
   - name: Setup Miru CLI
-    uses: mirurobotics/setup-miru@v0
+    uses: mirurobotics/setup-miru@v0.1
     with:
       version: 'v1.2.3'
 ```
@@ -43,7 +43,7 @@ steps:
 
   - name: Setup Miru CLI
     id: miru
-    uses: mirurobotics/setup-miru@v0
+    uses: mirurobotics/setup-miru@v0.1
 
   - name: Print installed version
     run: echo "Installed Miru CLI ${{ steps.miru.outputs.version }}"
@@ -89,7 +89,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Setup Miru CLI
-        uses: mirurobotics/setup-miru@v0
+        uses: mirurobotics/setup-miru@v0.1
 
       - name: Run Miru commands
         run: |
