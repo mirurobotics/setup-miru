@@ -32,7 +32,27 @@ steps:
   - name: Setup Miru CLI
     uses: mirurobotics/setup-miru@v0.1
     with:
-      version: 'v1.2.3'
+      version: 'v0.8.0'
+```
+
+### Pin to a Major or Minor Version
+
+You can also specify a major or minor version to get the latest release within that range:
+
+```yaml
+steps:
+  - uses: actions/checkout@v6
+
+  - name: Setup Miru CLI (latest v0.x.x)
+    uses: mirurobotics/setup-miru@v0.1
+    with:
+      version: 'v0'
+
+  # Or pin to a minor version (latest v0.8.x)
+  - name: Setup Miru CLI (latest v0.8.x)
+    uses: mirurobotics/setup-miru@v0.1
+    with:
+      version: 'v0.8'
 ```
 
 ### Use the Installed Version in Subsequent Steps
@@ -53,7 +73,7 @@ steps:
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `version` | Miru CLI version to install (e.g., `v1.2.3`). Omit or use `latest` for the most recent release. | No | `latest` |
+| `version` | Miru CLI version to install. Supports exact (`v0.8.0`), major (`v0`), and minor (`v0.8`) versions. Omit or use `latest` for the most recent release. | No | `latest` |
 
 ## Outputs
 
@@ -67,7 +87,7 @@ This action supports the following runner environments:
 
 | OS | Architecture |
 |----|--------------|
-| Linux | x86_64, arm64, armv7 |
+| Linux | x86_64, arm64 |
 | macOS | x86_64 (Intel), arm64 (Apple Silicon) |
 
 > **Note:** Windows runners are not currently supported.

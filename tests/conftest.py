@@ -53,12 +53,14 @@ def assert_install_success(result: subprocess.CompletedProcess, verbose: bool = 
 # Mock Infrastructure
 # =============================================================================
 
+LATEST_VERSION = "v0.8.0"
+
 
 @dataclass
 class MockConfig:
     """Configuration for mock curl behavior."""
 
-    version: str = "v1.0.0"
+    version: str = LATEST_VERSION
     fail_api: bool = False
     fail_download: bool = False
     fail_checksum: bool = False

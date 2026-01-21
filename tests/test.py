@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from conftest import (
+    LATEST_VERSION,
     SCRIPT_PATH,
     MockCurl,
     assert_install_success,
@@ -14,21 +15,23 @@ from conftest import (
     run_install,
 )
 
-
 class TestSuccess:
     """Successful installation scenarios."""
 
     def test_latest_version(self, mock_curl: MockCurl, temp_dir: Path):
-        """Install latest stable version."""
+        """Install latest version."""
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.setup()
 
         result = run_install(install_dir=temp_dir, mock_curl=mock_curl)
 
         assert_install_success(result)
         assert (temp_dir / "miru").exists()
+        assert LATEST_VERSION in result.stdout
 
     def test_specific_version(self, mock_curl: MockCurl, temp_dir: Path):
         """Install a specific version with --version flag."""
+        mock_curl.config.version = "v0.9.0"
         mock_curl.setup()
 
         result = run_install("--version=v0.9.0", install_dir=temp_dir, mock_curl=mock_curl)
@@ -38,15 +41,81 @@ class TestSuccess:
 
     def test_version_without_v_prefix(self, mock_curl: MockCurl, temp_dir: Path):
         """Install a version specified without v prefix."""
+        mock_curl.config.version = "v1.0.0"
         mock_curl.setup()
 
         result = run_install("--version=1.0.0", install_dir=temp_dir, mock_curl=mock_curl)
 
         assert_install_success(result)
-        assert "1.0.0" in result.stdout
+        assert "v1.0.0" in result.stdout
+
+    def test_version_alias_v0(self, mock_curl: MockCurl, temp_dir: Path):
+        """Version alias v0 maps to latest version."""
+        mock_curl.config.version = LATEST_VERSION
+        mock_curl.setup()
+
+        result = run_install("--version=v0", install_dir=temp_dir, mock_curl=mock_curl)
+
+        assert_install_success(result)
+        assert LATEST_VERSION in result.stdout
+
+    def test_version_alias_v0_8(self, mock_curl: MockCurl, temp_dir: Path):
+        """Version alias v0.8 maps to v0.8.0."""
+        mock_curl.config.version = "v0.8.0"
+        mock_curl.setup()
+
+        result = run_install("--version=v0.8", install_dir=temp_dir, mock_curl=mock_curl)
+
+        assert_install_success(result)
+        assert LATEST_VERSION in result.stdout
+
+    def test_version_latest_lowercase(self, mock_curl: MockCurl, temp_dir: Path):
+        """Version 'latest' maps to v0.8.0."""
+        mock_curl.config.version = LATEST_VERSION
+        mock_curl.setup()
+
+        result = run_install("--version=latest", install_dir=temp_dir, mock_curl=mock_curl)
+
+        assert_install_success(result)
+        assert LATEST_VERSION in result.stdout
+
+    def test_version_latest_capitalized(self, mock_curl: MockCurl, temp_dir: Path):
+        """Version 'Latest' maps to v0.8.0."""
+        mock_curl.config.version = LATEST_VERSION
+        mock_curl.setup()
+
+        result = run_install("--version=Latest", install_dir=temp_dir, mock_curl=mock_curl)
+
+        assert_install_success(result)
+        assert LATEST_VERSION in result.stdout
+
+    def test_version_latest_uppercase(self, mock_curl: MockCurl, temp_dir: Path):
+        """Version 'LATEST' maps to v0.8.0."""
+        mock_curl.config.version = LATEST_VERSION
+        mock_curl.setup()
+
+        result = run_install("--version=LATEST", install_dir=temp_dir, mock_curl=mock_curl)
+
+        assert_install_success(result)
+        assert LATEST_VERSION in result.stdout
+
+    def test_version_latest_via_env(self, mock_curl: MockCurl, temp_dir: Path):
+        """Version 'latest' via INPUT_VERSION env var maps to v0.8.0."""
+        mock_curl.config.version = LATEST_VERSION
+        mock_curl.setup()
+
+        result = run_install(
+            install_dir=temp_dir,
+            mock_curl=mock_curl,
+            env={"INPUT_VERSION": "latest"},
+        )
+
+        assert_install_success(result)
+        assert LATEST_VERSION in result.stdout
 
     def test_quiet_flag(self, mock_curl: MockCurl, temp_dir: Path):
         """Quiet mode suppresses output."""
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.setup()
 
         result = run_install("--quiet", install_dir=temp_dir, mock_curl=mock_curl)
@@ -57,6 +126,7 @@ class TestSuccess:
 
     def test_quiet_flag_short(self, mock_curl: MockCurl, temp_dir: Path):
         """Short quiet flag (-q) works."""
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.setup()
 
         result = run_install("-q", install_dir=temp_dir, mock_curl=mock_curl)
@@ -70,8 +140,8 @@ class TestAlreadyInstalled:
 
     def test_skip_same_version(self, mock_curl: MockCurl, temp_dir: Path):
         """Skip download if same version already installed."""
-        install_mock_binary(temp_dir, "v1.0.0")
-        mock_curl.config.version = "v1.0.0"
+        install_mock_binary(temp_dir, LATEST_VERSION)
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.setup()
 
         result = run_install(install_dir=temp_dir, mock_curl=mock_curl)
@@ -81,16 +151,16 @@ class TestAlreadyInstalled:
 
     def test_upgrade_different_version(self, mock_curl: MockCurl, temp_dir: Path):
         """Upgrade when different version is installed."""
-        install_mock_binary(temp_dir, "v0.9.0")
-        mock_curl.config.version = "v1.0.0"
+        install_mock_binary(temp_dir, "v0.7.0")
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.setup()
 
         result = run_install(install_dir=temp_dir, mock_curl=mock_curl)
 
         assert_install_success(result)
         assert "Upgrading" in result.stdout
-        assert "v0.9.0" in result.stdout
-        assert "v1.0.0" in result.stdout
+        assert "v0.7.0" in result.stdout
+        assert LATEST_VERSION in result.stdout
 
 
 def assert_error(result: subprocess.CompletedProcess, *expected_in_message: str) -> None:
@@ -103,35 +173,9 @@ def assert_error(result: subprocess.CompletedProcess, *expected_in_message: str)
 class TestFailure:
     """Failure scenarios - verify errors are informative."""
 
-    def test_api_unreachable(self, mock_curl: MockCurl, temp_dir: Path):
-        """Error message includes the API URL that failed."""
-        mock_curl.config.fail_api = True
-        mock_curl.setup()
-
-        result = run_install(install_dir=temp_dir, mock_curl=mock_curl)
-
-        assert_error(result, "api.github.com")
-
-    def test_api_empty_response(self, mock_curl: MockCurl, temp_dir: Path):
-        """Error message shows the GitHub response when parsing fails."""
-        mock_curl.config.empty_response = True
-        mock_curl.setup()
-
-        result = run_install(install_dir=temp_dir, mock_curl=mock_curl)
-
-        assert_error(result, "Could not parse version")
-
-    def test_api_error_response(self, mock_curl: MockCurl, temp_dir: Path):
-        """Error message shows the full GitHub API error response."""
-        mock_curl.config.api_error_message = "Not Found"
-        mock_curl.setup()
-
-        result = run_install(install_dir=temp_dir, mock_curl=mock_curl)
-
-        assert_error(result, "GitHub API error", "Not Found")
-
     def test_download_fails(self, mock_curl: MockCurl, temp_dir: Path):
         """Error message includes the download URL."""
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.config.fail_download = True
         mock_curl.setup()
 
@@ -141,6 +185,7 @@ class TestFailure:
 
     def test_checksum_download_fails(self, mock_curl: MockCurl, temp_dir: Path):
         """Error message includes the checksums URL."""
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.config.fail_checksum = True
         mock_curl.setup()
 
@@ -150,6 +195,7 @@ class TestFailure:
 
     def test_checksum_mismatch(self, mock_curl: MockCurl, temp_dir: Path):
         """Error message shows expected vs actual checksum."""
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.config.bad_checksum = True
         mock_curl.setup()
 
@@ -168,6 +214,7 @@ class TestFailure:
 
     def test_corrupt_archive(self, mock_curl: MockCurl, temp_dir: Path):
         """Error message indicates archive is corrupted."""
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.config.corrupt_tarball = True
         mock_curl.setup()
 
@@ -178,6 +225,7 @@ class TestFailure:
     @pytest.mark.timeout(5)
     def test_timeout_on_slow_download(self, mock_curl: MockCurl, temp_dir: Path):
         """Script times out on hung downloads."""
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.config.slow_download = 10  # Longer than test timeout
         mock_curl.setup()
 
@@ -200,6 +248,7 @@ class TestEdgeCases:
 
     def test_reinstall(self, mock_curl: MockCurl, temp_dir: Path):
         """Can reinstall over existing binary."""
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.setup()
 
         result1 = run_install(install_dir=temp_dir, mock_curl=mock_curl)
@@ -211,6 +260,7 @@ class TestEdgeCases:
 
     def test_warns_if_not_in_path(self, mock_curl: MockCurl, temp_dir: Path):
         """Warns when INSTALL_DIR is not in PATH."""
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.setup()
 
         # Use a PATH that doesn't include temp_dir
@@ -225,6 +275,7 @@ class TestEdgeCases:
 
     def test_no_warning_if_in_path(self, mock_curl: MockCurl, temp_dir: Path):
         """No warning when INSTALL_DIR is already in PATH."""
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.setup()
 
         # Include temp_dir in PATH
@@ -241,6 +292,7 @@ class TestEdgeCases:
         """Temp directory is cleaned up after successful install."""
         import glob
         import tempfile
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.setup()
 
         # Find temp dirs (works on both Linux /tmp and macOS /var/folders)
@@ -260,6 +312,7 @@ class TestEdgeCases:
         """Temp directory is cleaned up even after failed install."""
         import glob
         import tempfile
+        mock_curl.config.version = LATEST_VERSION
         mock_curl.config.fail_download = True
         mock_curl.setup()
 
@@ -335,7 +388,7 @@ class TestIntegration:
         env["SUDO"] = ""
 
         result = subprocess.run(
-            ["sh", str(SCRIPT_PATH), "--version=v0.7.0"],
+            ["sh", str(SCRIPT_PATH), f"--version={LATEST_VERSION}"],
             capture_output=True,
             text=True,
             env=env,

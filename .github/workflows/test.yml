@@ -22,7 +22,7 @@ jobs:
 
       - name: Run tests
         working-directory: tests
-        run: ./run.sh
+        run: ./run.sh --slow
 
   integration-test:
     name: Integration (${{ matrix.os }})
